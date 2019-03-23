@@ -1,0 +1,26 @@
+{
+  "name": "kickstart",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qroux/kickstart.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/qroux/kickstart/issues"
+  },
+  "homepage": "https://github.com/qroux/kickstart#readme",
+  "dependencies": {
+    "fs-extra": "^7.0.1",
+    "ganache-cli": "^6.4.1",
+    "mocha": "^6.0.2",
+    "solc": "^0.5.6",
+    "web3": "^1.0.0-beta.35"
+  }
+}
