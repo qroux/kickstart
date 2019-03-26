@@ -68,7 +68,7 @@ class RequestNew extends Component {
           </Form.Field>
 
           <Form.Field>
-            <label>Recipient</label>
+            <label>Recipient address</label>
             <Input
               value={this.state.recipient}
               onChange={event =>
