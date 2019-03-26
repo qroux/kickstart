@@ -9,5 +9,5 @@ const routes = require('./routes');
 const handler = routes.getRequestHandler(app);
 
 app.prepare().then(() => {
-  createServer(handler).listen(process.env.PORT || 3000);
+  Server.listen(process.env.PORT || 3000);
 });
