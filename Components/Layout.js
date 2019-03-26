@@ -14,7 +14,6 @@ export default (props) => {
       </Head>
       <Header />
       {props.children}
-      <h1>IM a FOOTER</h1>
     </Container>
     );
 
