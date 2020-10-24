@@ -7,7 +7,7 @@
     "test": "mocha",
     "dev": "node server.js",
     "build": "next build",
-    "start": "NODE_ENV=production next start"
+    "start": "NODE_ENV=production node server.js"
   },
   "repository": {
     "type": "git",
@@ -25,8 +25,8 @@
     "mocha": "^6.0.2",
     "next": "^9.5.5",
     "next-routes": "^1.4.2",
-    "react": "^16.8.5",
-    "react-dom": "^16.8.5",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.86.0",
     "solc": "^0.7.4",
