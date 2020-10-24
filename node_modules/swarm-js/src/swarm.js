@@ -3,7 +3,7 @@
 // separating the functions that are used on Node.js from the functions that
 // are used only on the browser.
 module.exports = ({
-  fs,
+  fsp,
   files,
   os,
   path,
@@ -47,7 +47,7 @@ module.exports = ({
     if (a.length !== b.length) {
       return false;
     } else {
-      for (let i = 0, l = a.length; i < l; ++i) {
+      for (let i = 0, l = a.length; i < a; ++i) {
         if (a[i] !== b[i]) return false;
       }
     }
@@ -56,22 +56,19 @@ module.exports = ({
 
   // String -> String -> String
   const rawUrl = swarmUrl => hash =>
-    `${swarmUrl}/bzz-raw:/${hash}`
+    `${swarmUrl}/bzzr:/${hash}`
 
   // String -> String -> Promise Uint8Array
   //   Gets the raw contents of a Swarm hash address.
   const downloadData = swarmUrl => hash =>
-    new Promise((resolve, reject) => {
-      request(rawUrl(swarmUrl)(hash), {responseType: "arraybuffer"}, (err, arrayBuffer, response) => {
-        if (err) {
-          return reject(err);
-        }
-        if (response.statusCode >= 400) {
-          return reject(new Error(`Error ${response.statusCode}.`));
-        }
-        return resolve(new Uint8Array(arrayBuffer));
-      })
-    });
+    request(rawUrl(swarmUrl)(hash), {responseType: "arraybuffer"})
+      .then(arrayBuffer => {
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const error404 = [52,48,52,32,112,97,103,101,32,110,111,116,32,102,111,117,110,100,10];
+        if (equals(uint8Array)(error404))
+          throw "Error 404.";
+        return uint8Array;
+      });
 
   // type Entry = {"type": String, "hash": String}
   // type File = {"type": String, "data": Uint8Array}
@@ -157,18 +154,9 @@ module.exports = ({
   //   Uploads raw data to Swarm.
   //   Returns a promise with the uploaded hash.
   const uploadData = swarmUrl => data =>
-    new Promise((resolve, reject) => {
-      const params = {
-        body: typeof data === "string" ? fromString(data) : data,
-        method: "POST"
-      };
-      request(`${swarmUrl}/bzz-raw:/`, params, (err, data) => {
-        if (err) {
-          return reject(err);
-        }
-        return resolve(data);
-      });
-    });
+    request(`${swarmUrl}/bzzr:/`, {
+      body: typeof data === "string" ? fromString(data) : data,
+      method: "POST"});
 
   // String -> String -> String -> File -> Promise String
   //   Uploads a file to the Swarm manifest at a given hash, under a specific
@@ -183,17 +171,14 @@ module.exports = ({
         method: "PUT",
         headers: {"Content-Type": file.type},
         body: file.data};
-      return new Promise((resolve, reject) => {
-        request(url, opt, (err, data) => {
-          if (err) {
-            return reject(err);
+      return request(url, opt)
+        .then(response => {
+          if (response.indexOf("error") !== -1) {
+            throw response;
           }
-          if (data.indexOf("error") !== -1) {
-            return reject(data);
-          }
-          return resolve(data);
-        });
-      }).catch(e => n > 0 && attempt(n-1));
+          return response;
+        })
+        .catch(e => n > 0 && attempt(n-1));
     };
     return attempt(3);
   };
@@ -204,7 +189,7 @@ module.exports = ({
 
   // String -> String -> Promise String
   const uploadFileFromDisk = swarmUrl => filePath =>
-    fs.readFile(filePath)
+    fsp.readFile(filePath)
       .then(data => uploadFile(swarmUrl)({type: mimetype.lookup(filePath), data: data}));
 
   // String -> Map String File -> Promise String
@@ -221,13 +206,13 @@ module.exports = ({
 
   // String -> Promise String
   const uploadDataFromDisk = swarmUrl => filePath =>
-    fs.readFile(filePath)
+    fsp.readFile(filePath)
       .then(uploadData(swarmUrl));
 
   // String -> Nullable String -> String -> Promise String
   const uploadDirectoryFromDisk = swarmUrl => defaultPath => dirPath =>
     files.directoryTree(dirPath)
-      .then(fullPaths => Promise.all(fullPaths.map(path => fs.readFile(path))).then(datas => {
+      .then(fullPaths => Promise.all(fullPaths.map(path => fsp.readFile(path))).then(datas => {
         const paths = fullPaths.map(path => path.slice(dirPath.length));
         const types = fullPaths.map(path => mimetype.lookup(path) || "text/plain");
         return toMap (paths) (datas.map((data, i) => ({type: types[i], data: data})));
